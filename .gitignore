@@ -1,0 +1,24 @@
+# Security (NEVER UPLOAD THESE)
+.env
+.env.local
+
+# Python junk
+__pycache__/
+*.pyc
+
+# Virtual Environment (Too big, not needed)
+venv/
+.venv/
+
+# Mac OS junk
+.DS_Store
+
+# Local Database (Let users build their own)
+gov_docs.json
+gov_docs_db/
+
+
+# Ignore test scripts with secrets
+test_key.py
+check_models.py
+*_test.py

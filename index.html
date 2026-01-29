@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xaana.AI | Government Intelligence Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- CSS VARIABLES --- */
+        :root {
+            --bg-color: #050505;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --accent: #333333;
+            --border: #444444;
+            --highlight-risk: #ff4d4d;
+            --highlight-money: #00ff9d; /* Green for money */
+            --font-stack: 'Segoe UI', Roboto, Helvetica, sans-serif;
+        }
+
+        /* --- GLOBAL RESET --- */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER --- */
+        header {
+            width: 100%;
+            padding: 30px 20px;
+            border-bottom: 1px solid var(--accent);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-weight: 200;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        /* --- TABS --- */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--text-main);
+            border-bottom: 2px solid var(--text-main);
+        }
+
+        /* --- CONTAINER & VIEWS --- */
+        .container {
+            width: 100%;
+            max-width: 1100px; /* Made wider for the charts */
+            padding: 20px;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- UPLOAD ZONES --- */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: var(--card-bg);
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover { border-color: var(--text-main); background-color: #1a1a1a; }
+        .upload-zone.active-file { border-color: var(--text-main); background-color: #222; }
+        .file-name-display { display: block; margin-top: 10px; color: var(--text-main); font-weight: bold;}
+
+        /* --- BUTTONS --- */
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 1px solid var(--text-main);
+            color: var(--text-main);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            margin-top: 10px;
+        }
+        .action-btn:hover { background: var(--text-main); color: var(--bg-color); }
+
+        /* --- CHAT INTERFACE --- */
+        .chat-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        
+        .msg-user { align-self: flex-end; background: var(--accent); color: white; }
+        .msg-ai { align-self: flex-start; background: #0a0a0a; border: 1px solid var(--border); color: #ddd; }
+
+        .chat-input-area { display: flex; gap: 10px; }
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 4px;
+        }
+
+        .source-tag {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* --- RESULTS GRID --- */
+        #results-dashboard {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 50px;
+        }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; border-radius: 4px; }
+        .card h2 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--accent); padding-bottom: 10px; margin-top: 0; }
+        .full-width { grid-column: span 2; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        
+        /* DATA TAGS */
+        .data-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background: #222;
+            border: 1px solid #333;
+        }
+        .data-money { border-color: var(--highlight-money); color: var(--highlight-money); }
+
+        /* --- LOADER --- */
+        .loader-container { display: none; text-align: center; margin: 20px; }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--accent); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- CHART ADJUSTMENTS --- */
+        #chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Government Intelligence Platform</h1>
+    </header>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="switchTab('analyze')">Analyze</button>
+        <button class="tab-btn" onclick="switchTab('chat')">Chat (RAG)</button>
+        <button class="tab-btn" onclick="switchTab('tools')">Tools</button>
+    </div>
+
+    <div class="container">
+
+        <div id="view-analyze" class="view-section active">
+            <div class="upload-zone" id="drop-zone-analyze">
+                <span class="upload-label">Select Document (PDF)</span>
+                <span id="analyze-filename" class="file-name-display"></span>
+                <input type="file" id="file-input-analyze" accept="application/pdf">
+            </div>
+            
+            <button id="analyze-btn" class="action-btn" style="display:none;">Initialize Analysis</button>
+
+            <div class="loader-container" id="loader-analyze">
+                <div class="spinner"></div>
+                <p>Extracting Intelligence...</p>
+            </div>
+
+            <div id="results-dashboard">
+                
+                <button id="download-btn" class="action-btn" style="grid-column: span 2; background: #222; border-color: #4CAF50; color: #4CAF50; margin-bottom: 20px;">
+                    📄 Download Ministerial Brief (.docx)
+                </button>
+
+                <div class="card">
+                    <h2>Document Composition</h2>
+                    <div id="chart-container">
+                        <canvas id="auditChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card" style="border-color: #555;">
+                    <h2>Audit Data (Hard Facts)</h2>
+                    <div id="hard-data-container">
+                        <p style="color:#666">No extracted entities found.</p>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <h2>Executive Summary</h2>
+                    <p id="out-about"></p>
+                </div>
+                
+                <div class="card">
+                    <h2>Key Decisions</h2>
+                    <ul id="out-decisions"></ul>
+                </div>
+                <div class="card">
+                    <h2>Risks</h2>
+                    <ul id="out-risks"></ul>
+                </div>
+                
+                <div class="card full-width">
+                    <h2>Impact</h2>
+                    <p id="out-impact"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-chat" class="view-section">
+            <div class="chat-box" id="chat-display">
+                <div class="chat-message msg-ai">
+                    Hello. I have access to the Government Intelligence Knowledge Base. 
+                    Ask me about any uploaded policy documents.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" class="chat-input" placeholder="e.g., What are the penalties for non-compliance?">
+                <button id="chat-btn" class="action-btn" style="width: auto; margin:0;">Ask</button>
+            </div>
+        </div>
+
+        <div id="view-tools" class="view-section">
+            <p style="color:var(--text-muted);">Secure PDF Page Insertion</p>
+            <div class="upload-zone" id="drop-zone-base">
+                <span class="upload-label">1. Base PDF</span>
+                <span id="base-filename" class="file-name-display"></span>
+                <input type="file" id="file-base" accept="application/pdf">
+            </div>
+            <div class="upload-zone" id="drop-zone-insert">
+                <span class="upload-label">2. Insert PDF</span>
+                <span id="insert-filename" class="file-name-display"></span>
+                <input type="file" id="file-insert" accept="application/pdf">
+            </div>
+            <input type="number" id="page-index" value="0" min="0" style="padding:10px; width:100px; margin-bottom:10px;" placeholder="Page #">
+            <button id="merge-btn" class="action-btn">Run Insertion</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let currentAnalysisData = null;
+        let myChart = null; // Store chart instance
+
+        function switchTab(name) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${name}`).classList.add('active');
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            if(name === 'analyze') btns[0].classList.add('active');
+            if(name === 'chat') btns[1].classList.add('active');
+            if(name === 'tools') btns[2].classList.add('active');
+        }
+
+        function setupUpload(dropId, inputId, labelId, callback) {
+            const drop = document.getElementById(dropId);
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            if (!drop || !input) return;
+
+            drop.addEventListener('click', (e) => { if(e.target !== input) input.click(); });
+            input.addEventListener('change', () => {
+                if (input.files && input.files[0]) {
+                    label.textContent = `Attached: ${input.files[0].name}`;
+                    drop.style.borderColor = '#4CAF50';
+                    if (callback) callback();
+                }
+            });
+        }
+
+        window.onload = function() {
+            setupUpload('drop-zone-analyze', 'file-input-analyze', 'analyze-filename', () => {
+                document.getElementById('analyze-btn').style.display = 'block';
+            });
+            setupUpload('drop-zone-base', 'file-base', 'base-filename');
+            setupUpload('drop-zone-insert', 'file-insert', 'insert-filename');
+        };
+
+        // --- CHART FUNCTION ---
+        function renderChart(data) {
+            const ctx = document.getElementById('auditChart').getContext('2d');
+            
+            // Count Entities
+            const risks = data.risks ? data.risks.length : 0;
+            const decisions = data.decisions ? data.decisions.length : 0;
+            const money = (data.hard_data && data.hard_data.budget_mentions) ? data.hard_data.budget_mentions.length : 0;
+            const laws = (data.hard_data && data.hard_data.legal_references) ? data.hard_data.legal_references.length : 0;
+
+            // Destroy old chart if exists
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Risks', 'Key Decisions', 'Financial Items', 'Legal Refs'],
+                    datasets: [{
+                        label: 'Document Entity Density',
+                        data: [risks, decisions, money, laws],
+                        backgroundColor: [
+                            'rgba(255, 77, 77, 0.7)',  // Red for Risk
+                            'rgba(76, 175, 80, 0.7)',  // Green for Decisions
+                            'rgba(0, 255, 157, 0.7)',  // Neon Green for Money
+                            'rgba(255, 255, 255, 0.7)' // White for Laws
+                        ],
+                        borderColor: [
+                            'rgba(255, 77, 77, 1)',
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(0, 255, 157, 1)',
+                            'rgba(255, 255, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#333' },
+                            ticks: { color: '#aaa' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#aaa' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- ANALYZE LOGIC ---
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const file = document.getElementById('file-input-analyze').files[0];
+            const loader = document.getElementById('loader-analyze');
+            const dashboard = document.getElementById('results-dashboard');
+            const btn = document.getElementById('analyze-btn');
+
+            if (!file) { alert("Attach PDF first."); return; }
+
+            btn.style.display = 'none';
+            loader.style.display = 'block';
+            dashboard.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/analyze', { method: 'POST', body: formData });
+                if(!res.ok) throw new Error("Analysis failed.");
+                
+                const data = await res.json();
+                currentAnalysisData = data;
+
+                // 1. RENDER CHARTS (NEW)
+                renderChart(data);
+
+                // 2. RENDER TEXT
+                document.getElementById('out-about').textContent = data.about;
+                document.getElementById('out-impact').textContent = data.impact;
+                
+                const fill = (id, list) => {
+                    const el = document.getElementById(id);
+                    el.innerHTML = '';
+                    if(list && list.length) list.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        if(id === 'out-risks' && (item.includes('High') || item.includes('Critical'))) li.style.color = '#ff4d4d';
+                        el.appendChild(li);
+                    });
+                };
+                fill('out-decisions', data.decisions);
+                fill('out-risks', data.risks);
+
+                // 3. RENDER HARD DATA (NER)
+                const hdContainer = document.getElementById('hard-data-container');
+                hdContainer.innerHTML = ''; 
+                
+                if (data.hard_data) {
+                    const createTags = (items, className) => {
+                        items.forEach(item => {
+                            const span = document.createElement('span');
+                            span.className = `data-tag ${className || ''}`;
+                            span.textContent = item;
+                            hdContainer.appendChild(span);
+                        });
+                    };
+
+                    if(data.hard_data.budget_mentions) createTags(data.hard_data.budget_mentions, 'data-money');
+                    if(data.hard_data.legal_references) createTags(data.hard_data.legal_references);
+                    if(data.hard_data.important_dates) createTags(data.hard_data.important_dates);
+                    
+                    if(hdContainer.innerHTML === '') hdContainer.textContent = "No hard entities detected in text.";
+                }
+
+                dashboard.style.display = 'grid';
+
+            } catch(e) { 
+                alert(e.message); 
+                btn.style.display = 'block'; 
+            } finally { loader.style.display = 'none'; }
+        });
+
+        // --- EXPORT LOGIC ---
+        document.getElementById('download-btn').addEventListener('click', async () => {
+            if(!currentAnalysisData) return;
+            try {
+                const res = await fetch('http://127.0.0.1:8000/export/docx', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentAnalysisData)
+                });
+                
+                if(res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "Ministerial_Brief.docx";
+                    a.click();
+                } else alert("Export failed.");
+            } catch(e) { alert("Error generating report: " + e.message); }
+        });
+
+        // --- CHAT LOGIC ---
+        document.getElementById('chat-btn').addEventListener('click', async () => {
+            const input = document.getElementById('chat-input');
+            const display = document.getElementById('chat-display');
+            const query = input.value.trim();
+            if(!query) return;
+
+            display.innerHTML += `<div class="chat-message msg-user">${query}</div>`;
+            input.value = '';
+            display.scrollTop = display.scrollHeight;
+
+            const formData = new FormData();
+            formData.append("query", query);
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/chat', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                let sourceHtml = '';
+                if(data.sources && data.sources.length) {
+                    const unique = [...new Set(data.sources)];
+                    sourceHtml = `<span class="source-tag">Sources: ${unique.join(', ')}</span>`;
+                }
+                
+                display.innerHTML += `<div class="chat-message msg-ai">${data.answer}${sourceHtml}</div>`;
+            } catch(e) {
+                display.innerHTML += `<div class="chat-message msg-ai" style="color:red">Error: ${e.message}</div>`;
+            }
+            display.scrollTop = display.scrollHeight;
+        });
+
+        // --- MERGE LOGIC ---
+        document.getElementById('merge-btn').addEventListener('click', async () => {
+            const base = document.getElementById('file-base').files[0];
+            const insert = document.getElementById('file-insert').files[0];
+            const page = document.getElementById('page-index').value;
+            if(!base || !insert) return alert("Select files.");
+
+            const formData = new FormData();
+            formData.append("base_file", base);
+            formData.append("insert_file", insert);
+            formData.append("at_page", page);
+
+            const res = await fetch('http://127.0.0.1:8000/tools/insert-pdf', { method: 'POST', body: formData });
+            if(res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `modified_${base.name}`;
+                a.click();
+            } else alert("Merge failed.");
+        });
+    </script>
+</body>
+</html>
