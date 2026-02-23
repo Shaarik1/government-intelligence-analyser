@@ -34,7 +34,6 @@ def extract_hard_facts(text):
         "important_dates": list(set(date_matches))
     }
 
-# Test it immediately
 if __name__ == "__main__":
     test_text = """
     The Migration Act 1958 was updated on Jan 24, 2025.
