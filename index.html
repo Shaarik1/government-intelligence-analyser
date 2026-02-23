@@ -6,7 +6,7 @@
     <title>Xaana.AI | Government Intelligence Platform</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- CSS VARIABLES --- */
+        /* CSS VARIABLES  */
         :root {
             --bg-color: #050505;
             --card-bg: #111111;
@@ -19,7 +19,7 @@
             --font-stack: 'Segoe UI', Roboto, Helvetica, sans-serif;
         }
 
-        /* --- GLOBAL RESET --- */
+        /* Global Reset */
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -32,7 +32,7 @@
             min-height: 100vh;
         }
 
-        /* --- HEADER --- */
+        /* Header */
         header {
             width: 100%;
             padding: 30px 20px;
@@ -57,7 +57,7 @@
             text-transform: uppercase;
         }
 
-        /* --- TABS --- */
+        /* Tabs */
         .tab-container {
             display: flex;
             justify-content: center;
@@ -81,7 +81,7 @@
             border-bottom: 2px solid var(--text-main);
         }
 
-        /* --- CONTAINER & VIEWS --- */
+        /* Container & Views */
         .container {
             width: 100%;
             max-width: 1100px; /* Made wider for the charts */
@@ -96,7 +96,7 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- UPLOAD ZONES --- */
+        /* Upload zones  */
         .upload-zone {
             border: 2px dashed var(--border);
             border-radius: 8px;
@@ -112,7 +112,7 @@
         .upload-zone.active-file { border-color: var(--text-main); background-color: #222; }
         .file-name-display { display: block; margin-top: 10px; color: var(--text-main); font-weight: bold;}
 
-        /* --- BUTTONS --- */
+        /* Buttons */
         .action-btn {
             width: 100%;
             padding: 15px;
@@ -128,7 +128,7 @@
         }
         .action-btn:hover { background: var(--text-main); color: var(--bg-color); }
 
-        /* --- CHAT INTERFACE --- */
+        /* Chat Interface */
         .chat-box {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -170,7 +170,7 @@
             font-style: italic;
         }
 
-        /* --- RESULTS GRID --- */
+        /* Results Grid */
         #results-dashboard {
             display: none;
             grid-template-columns: 1fr 1fr;
@@ -183,7 +183,7 @@
         ul { padding-left: 20px; }
         li { margin-bottom: 10px; }
         
-        /* DATA TAGS */
+        /* Data Tags */
         .data-tag {
             display: inline-block;
             padding: 4px 8px;
@@ -195,12 +195,12 @@
         }
         .data-money { border-color: var(--highlight-money); color: var(--highlight-money); }
 
-        /* --- LOADER --- */
+        /* Loader */
         .loader-container { display: none; text-align: center; margin: 20px; }
         .spinner { width: 40px; height: 40px; border: 3px solid var(--accent); border-top: 3px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* --- CHART ADJUSTMENTS --- */
+        /* Chart Adjustments */
         #chart-container {
             position: relative;
             height: 250px;
@@ -308,7 +308,7 @@
     </div>
 
     <script>
-        // --- GLOBAL STATE ---
+        // Global State
         let currentAnalysisData = null;
         let myChart = null; // Store chart instance
 
@@ -347,7 +347,7 @@
             setupUpload('drop-zone-insert', 'file-insert', 'insert-filename');
         };
 
-        // --- CHART FUNCTION ---
+        // Chart function
         function renderChart(data) {
             const ctx = document.getElementById('auditChart').getContext('2d');
             
@@ -426,10 +426,10 @@
                 const data = await res.json();
                 currentAnalysisData = data;
 
-                // 1. RENDER CHARTS (NEW)
+                // 1. Render Charts
                 renderChart(data);
 
-                // 2. RENDER TEXT
+                // 2. Render Text
                 document.getElementById('out-about').textContent = data.about;
                 document.getElementById('out-impact').textContent = data.impact;
                 
@@ -446,7 +446,7 @@
                 fill('out-decisions', data.decisions);
                 fill('out-risks', data.risks);
 
-                // 3. RENDER HARD DATA (NER)
+                // 3. Render Hard Data 
                 const hdContainer = document.getElementById('hard-data-container');
                 hdContainer.innerHTML = ''; 
                 
@@ -475,7 +475,7 @@
             } finally { loader.style.display = 'none'; }
         });
 
-        // --- EXPORT LOGIC ---
+        // Export Logic 
         document.getElementById('download-btn').addEventListener('click', async () => {
             if(!currentAnalysisData) return;
             try {
@@ -496,7 +496,7 @@
             } catch(e) { alert("Error generating report: " + e.message); }
         });
 
-        // --- CHAT LOGIC ---
+        // Chat logic 
         document.getElementById('chat-btn').addEventListener('click', async () => {
             const input = document.getElementById('chat-input');
             const display = document.getElementById('chat-display');
@@ -527,7 +527,7 @@
             display.scrollTop = display.scrollHeight;
         });
 
-        // --- MERGE LOGIC ---
+        // Logic
         document.getElementById('merge-btn').addEventListener('click', async () => {
             const base = document.getElementById('file-base').files[0];
             const insert = document.getElementById('file-insert').files[0];
